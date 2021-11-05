@@ -20,12 +20,3 @@ Zadaniem pojazdu będzie poruszanie się do przodu oraz omijanie przeszkód, ew.
 
 
 
-Projekt nr 2
-Odbiornik Audio na serwerze AirPlay
-Założeniem projektu jest możliwość wykorzystania sprzętu Hi_Fi, głośników, słuchawek itp. Sprzętu często wysokiej jakości pozbawionego jednak możliwości bezprzewodowej komunikacji ze współczesnymi smartfonami, tabletami oraz komputerami.
-Komunikacja odbywać się będzie poprzez serwer AirPlay z urządzeniami iOS i MacOS 
-Celem projektu jest zapewnienie stosunkowo niewielkim kosztem możliwości wykorzystania  posiadanego sprzętu audio do komunikacji np z telefonami Iphone
-Do wyjścia audio jack 3,5 mm Raspberry Pi możliwe będzie podpięcie dowolnego urządzenia wyposażonego w kabel jack 3,5 mm np. Aktywne głośniki, słuchawki itp.
-Raspberry Pi generować będzie serwer AirPlay
-Z serwerem AirPlay komunikować się będą urządzenia MacOS i iOS 
-Raspberry Pi zapewniać ma stabilną komunikację poprzez sieć WIFI pracujących w niej urządzeń
