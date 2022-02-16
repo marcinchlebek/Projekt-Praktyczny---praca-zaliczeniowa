@@ -11,7 +11,14 @@
 #define MAX_POWER 4096
 #define PIN_BASE 300
 #define HERTZ 50
+
+#define BUFLEN 512
+#define PORT 8888
+
 int fd;
+char car_status = 'E';
+void car_handler();
+void line_follower();
 
  //define pins in wiringPi system
 #define EN_LEFT 0  //left motor connected to PCA9685
@@ -125,9 +132,52 @@ int main(void)
     {
         printf("Error in setup\n");
         return fd;
+
+    car_handler();
+ 
+	return 0;
+}
+
+void car_handler()
+{
+    while(1)
+    {
+        switch (car_status)
+        {
+        case 'A':
+            printf("move forward\n");
+            go_Forward(fd, mid_speed, mid_speed);
+            break;
+        case 'B':
+            printf("move backward\n");
+            go_Back(fd, mid_speed, mid_speed);
+            break;
+        case 'L':
+            printf("turn left\n");
+            go_Left(fd, low_speed, mid_speed);
+            break;
+        case 'R':
+            printf("turn right\n");
+            go_Right(fd, mid_speed, low_speed);
+            break;
+
+        case 'E':
+            printf("stop car\n");
+            stop_car(fd);
+            break;
+        case 'T':
+            printf("line_follower START\n");
+            //line_follower();        
+        default:
+            break;
+        }
     }
 
-	while (1)
+}
+
+void line_follower()
+{
+    while (1)
 	{
 		//read IR sensor 
 		val[0]='0'+!digitalRead(SENS1);
@@ -236,8 +286,5 @@ int main(void)
             printf("%s stop\n",val);
             stop_car(fd);
         }
-
     }
- 
-	return 0;
 }
