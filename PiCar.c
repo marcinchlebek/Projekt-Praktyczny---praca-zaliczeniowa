@@ -1,11 +1,15 @@
 //This is first basic code for line follower
 
+#include<stdio.h>	//printf
+#include<string.h> //memset
+#include<stdlib.h> //exit(0);
+#include<arpa/inet.h>
+#include<sys/socket.h>
+#include <unistd.h>
 #include "pca9685/pca9685.h"
 #include <wiringPi.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <signal.h>
+#include <pthread.h>
 
 
 #define MAX_POWER 4096
@@ -18,7 +22,13 @@
 int fd;
 char car_status = 'E';
 void car_handler();
+void car_receiver();
 void line_follower();
+void die(char *s);
+struct sigaction sigIntHandler;
+struct sockaddr_in si_me, si_other;
+int s, i, slen = sizeof(si_other) , recv_len;
+char buf[BUFLEN];
 
  //define pins in wiringPi system
 #define EN_LEFT 0  //left motor connected to PCA9685
@@ -132,8 +142,38 @@ int main(void)
     {
         printf("Error in setup\n");
         return fd;
+	}
+	
+	//create a UDP socket
+	if ((s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
+	{
+		die("socket");
+	}
+	
+	// zero out the structure
+	memset((char *) &si_me, 0, sizeof(si_me));
+	si_me.sin_family = AF_INET;
+	si_me.sin_port = htons(PORT);
+	si_me.sin_addr.s_addr = htonl(INADDR_ANY);
+	
+	//bind socket to port
+	if( bind(s , (struct sockaddr*)&si_me, sizeof(si_me) ) == -1)
+	{
+		die("bind");
+	}
+	
 
-    car_handler();
+	printf("Waiting for APP command...");
+	//keep listening for data
+	pthread_t th1, th2;
+    
+ 	pthread_create ( &th2, NULL, ( void* ) car_handler, NULL );
+    pthread_create ( &th1, NULL, ( void* ) car_receiver, NULL );
+ 
+	while (1);
+	close(s);
+
+    //car_handler();
  
 	return 0;
 }
@@ -173,6 +213,27 @@ void car_handler()
         }
     }
 
+}
+
+void car_receiver(void)
+{
+	while(1)
+	{	 
+		fflush(stdout);
+		
+		//try to receive some data, this is a blocking call
+		if ((recv_len = recvfrom(s, buf, BUFLEN, 0, (struct sockaddr *) &si_other, &slen)) == -1)
+		{
+			die("recvfrom()");
+		}
+		car_status=buf[0];
+	}
+}
+
+void die(char *s)
+{
+	perror(s);
+	exit(1);
 }
 
 void line_follower()
