@@ -1,8 +1,6 @@
-//This is first basic code for line follower
-
-#include<stdio.h>	//printf
-#include<string.h> //memset
-#include<stdlib.h> //exit(0);
+#include<stdio.h>	
+#include<string.h>
+#include<stdlib.h>
 #include<arpa/inet.h>
 #include<sys/socket.h>
 #include <unistd.h>
@@ -11,11 +9,9 @@
 #include <signal.h>
 #include <pthread.h>
 
-
 #define MAX_POWER 4096
 #define PIN_BASE 300
 #define HERTZ 50
-
 #define BUFLEN 512
 #define PORT 8888
 
@@ -54,7 +50,6 @@ char val[5]; //sensor value array
 #define short_delay 100
 #define long_delay 200
 #define extra_long_delay 300
-
 
 //<---------------------------------------------------------------->
 void setup()
@@ -125,6 +120,7 @@ void stop_car(int fd)
     pca9685PWMWrite(fd, EN_RIGHT, 0, 0);
 }
 
+
 //<-------------------------------------------------------->
 
 int main(void)
@@ -133,7 +129,7 @@ int main(void)
     {
         return -1;
     }
-    
+    //GPIO start
     setup();
 
     fd = pca9685Setup(PIN_BASE, 0x40, HERTZ);
@@ -143,6 +139,7 @@ int main(void)
         printf("Error in setup\n");
         return fd;
 	}
+	
 	
 	//create a UDP socket
 	if ((s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
@@ -157,24 +154,22 @@ int main(void)
 	si_me.sin_addr.s_addr = htonl(INADDR_ANY);
 	
 	//bind socket to port
-	if( bind(s , (struct sockaddr*)&si_me, sizeof(si_me) ) == -1)
+	if( bind(s ,(struct sockaddr*)&si_me, sizeof(si_me) ) == -1)
 	{
 		die("bind");
 	}
 	
-
-	printf("Waiting for APP command...");
+	printf("Waiting for APP ...");
+	
 	//keep listening for data
 	pthread_t th1, th2;
     
  	pthread_create ( &th2, NULL, ( void* ) car_handler, NULL );
-    pthread_create ( &th1, NULL, ( void* ) car_receiver, NULL );
+	pthread_create ( &th1, NULL, ( void* ) car_receiver, NULL );
  
 	while (1);
 	close(s);
 
-    //car_handler();
- 
 	return 0;
 }
 
@@ -205,9 +200,16 @@ void car_handler()
             printf("stop car\n");
             stop_car(fd);
             break;
+			
+		case 'O':
+			printf("back to handler\n");
+			
+			
+			break;
         case 'T':
             printf("line_follower START\n");
-            //line_follower();        
+            line_follower();
+			break;
         default:
             break;
         }
@@ -218,27 +220,21 @@ void car_handler()
 void car_receiver(void)
 {
 	while(1)
-	{	 
+	{
 		fflush(stdout);
-		
 		//try to receive some data, this is a blocking call
 		if ((recv_len = recvfrom(s, buf, BUFLEN, 0, (struct sockaddr *) &si_other, &slen)) == -1)
 		{
 			die("recvfrom()");
 		}
+		
 		car_status=buf[0];
 	}
 }
 
-void die(char *s)
-{
-	perror(s);
-	exit(1);
-}
-
 void line_follower()
 {
-    while (1)
+    while (car_status != 'O')
 	{
 		//read IR sensor 
 		val[0]='0'+!digitalRead(SENS1);
@@ -348,4 +344,10 @@ void line_follower()
             stop_car(fd);
         }
     }
+}
+
+void die(char *s)
+{
+	perror(s);
+	exit(1);
 }
