@@ -195,16 +195,12 @@ void car_handler()
             printf("turn right\n");
             go_Right(fd, mid_speed, low_speed);
             break;
-
         case 'E':
             printf("stop car\n");
             stop_car(fd);
             break;
-			
 		case 'O':
 			printf("back to handler\n");
-			
-			
 			break;
         case 'T':
             printf("line_follower START\n");
